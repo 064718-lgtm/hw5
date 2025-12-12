@@ -149,16 +149,18 @@ def heuristic_score(text: str) -> Tuple[float, Dict[str, float]]:
     if features["tokens"] == 0:
         return 0.5, features
 
-    repetition_score = clamp((0.55 - features["unique_ratio"]) / 0.55, 0.0, 1.0)
+    # AI-like texts tend to have balanced vocabulary diversity, smoother sentence lengths,
+    # and moderate stopword ratios. Bias the heuristic toward those patterns.
+    unique_balance = 1.0 - clamp(abs(features["unique_ratio"] - 0.62) / 0.62, 0.0, 1.0)
     smoothness_score = clamp((12.0 - features["sentence_len_std"]) / 12.0, 0.0, 1.0)
     medium_length_score = clamp(1.0 - abs(features["avg_sentence_len"] - 18.0) / 18.0, 0.0, 1.0)
-    stopword_balance = 1.0 - clamp(abs(features["stop_ratio"] - 0.48) / 0.48, 0.0, 1.0)
+    stopword_balance = 1.0 - clamp(abs(features["stop_ratio"] - 0.46) / 0.46, 0.0, 1.0)
 
     weighted_score = (
-        0.4 * repetition_score
+        0.3 * unique_balance
         + 0.25 * smoothness_score
+        + 0.25 * stopword_balance
         + 0.2 * medium_length_score
-        + 0.15 * stopword_balance
     )
     return clamp(weighted_score, 0.0, 1.0), features
 
@@ -192,7 +194,7 @@ def analyze(text: str, prefer_model: bool = True) -> Dict:
 
 st.set_page_config(page_title="AI / Human Detector", page_icon="🛰️", layout="wide")
 st.title("AI / Human 文章偵測器")
-st.caption("輸入文本後立即估計 AI vs Human 的比例。預設使用 transformer 模型，若無法下載則改用啟發式特徵。")
+st.caption("輸入文本後按下分析，估計 AI vs Human 的比例。預設使用 transformer 模型，若無法下載則改用啟發式特徵。")
 
 with st.sidebar:
     st.subheader("設定")
@@ -220,13 +222,15 @@ if sample_ai:
         "that align with the requested topic while maintaining a neutral tone throughout the response."
     )
 
-text = st.text_area(
-    "輸入或貼上文本（英文與中英混排皆可）",
-    value=st.session_state["input_text"],
-    height=260,
-)
+with st.form("detector_form", clear_on_submit=False):
+    text = st.text_area(
+        "輸入或貼上文本（英文與中英混排皆可）",
+        key="input_text",
+        height=260,
+    )
+    submitted = st.form_submit_button("分析 Analyze", type="primary")
 
-if text.strip():
+if submitted and text.strip():
     with st.spinner("Analyzing..."):
         result = analyze(text.strip(), prefer_model=prefer_model)
 
@@ -263,15 +267,21 @@ if text.strip():
     # Token weight visualization
     st.subheader("Token 權重視覺化")
     token_df = token_weights(text)
-    top_n = st.slider("顯示前 N 個權重較高的 token", min_value=5, max_value=min(50, len(token_df) or 5), value=min(15, len(token_df) or 5))
+    top_n = st.slider(
+        "顯示前 N 個權重較高的 token",
+        min_value=5,
+        max_value=min(50, len(token_df) or 5),
+        value=min(15, len(token_df) or 5),
+    )
     if not token_df.empty:
         top_tokens = token_df.head(top_n)
         chart = (
             alt.Chart(top_tokens)
-            .mark_bar()
+            .mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3)
             .encode(
-                x=alt.X("weight:Q", title="權重 (頻率佔比)"),
+                x=alt.X("weight:Q", title="權重 (頻率佔比)", axis=alt.Axis(format="~%")),
                 y=alt.Y("token:N", sort="-x", title="Token"),
+                color=alt.value("#4C78A8"),
                 tooltip=["token", "count", alt.Tooltip("weight:Q", format=".3f")],
             )
             .properties(height=400)
@@ -283,3 +293,5 @@ if text.strip():
 
     if result["meta"].get("detector_error"):
         st.info(result["meta"]["detector_error"])
+elif submitted:
+    st.warning("請輸入文本再進行分析。")

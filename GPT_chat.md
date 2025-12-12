@@ -64,3 +64,13 @@ Push done to `origin/main` (https://github.com/064718-lgtm/hw5.git).
 ```
 Added token-weight visualization (frequency-based bar chart with slider) to `app.py` using Altair; updated `requirements.txt` and new `README.md` with usage plus Streamlit URL https://jtmgcfkvhjatjmrwvcdblm.streamlit.app/. Changes committed and pushed to origin/main.
 ```
+
+9. User:
+```
+當我使用ai-like sample時，目前預測的AI機率只有不到30%，然後打完輸入框後應該要案一個按鈕再進行模型預測，另外請幫我優化整體UI
+```
+
+10. Assistant:
+```
+UI updated with explicit Analyze button (form submit) and improved styling; AI-like sample set via checkbox. Added Altair chart styling tweaks. Heuristic scoring tuned toward balanced vocabulary diversity and smoother sentences to raise AI-likeness for AI-like text when transformer is unavailable. README updated. Changes committed and pushed.
+```
