@@ -49,7 +49,7 @@ If you want next steps: 1) swap in a different detector model or cache locally t
 
 6. Assistant:
 ```
-Push done to `origin/main` (https://github.com/064718-lgtm/hw5.git), latest commit `Add AI/Human detector app`.
+Push done to `origin/main` (https://github.com/064718-lgtm/hw5.git).
 - Updated `app.py` (Streamlit AI/Human detector with transformer-first + heuristic fallback), `requirements.txt`, `.gitignore`, `GPT_chat.md` (conversation log).
 - Run: `pip install -r requirements.txt`; `streamlit run app.py`. First run downloads `Hello-SimpleAI/chatgpt-detector-roberta`; offline falls back to heuristics.
 - Next steps: 1) Add a small labeled set to benchmark thresholds; 2) Cache the model locally or pin a mirror for offline use.
