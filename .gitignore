@@ -1,0 +1,9 @@
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+
+# Editors
+.vscode/
+
+# Streamlit
+.streamlit/
