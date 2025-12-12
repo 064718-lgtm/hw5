@@ -94,8 +94,23 @@ UI updated with explicit Analyze button (form submit) and improved styling; AI-l
 ```
 
 14. Assistant:
-``>
+```
 - Added sample selector (None / AI-like / Human-like) without overwriting edits after selection.
 - Human-like sample text added; AI-like sample retained.
 - README updated accordingly. Changes committed and pushed to origin/main.
+```
+
+15. User:
+```
+1.去調整Token 權重視覺化的N來顯示前 N 個權重較高的 token時還是沒辦法動態調整，當今天改變了原本的設定後圖表會直接消失 
+ 2.請幫我用一個較為準確的預訓練模型，需要確保能在streamlit cloud上使用
+3.安裝需求：pip install -r requirements.txt
+啟動：streamlit run app.py請幫我刪除
+```
+
+16. Assistant:
+```
+- Reworked app state so the token-weight chart slider stays active and no longer disappears after adjusting N.
+- Swapped back to a pretrained detector (`Hello-SimpleAI/chatgpt-detector-roberta`) with transformer pipeline; heuristic remains as fallback.
+- Removed install/run command block; cleaned README; updated requirements with transformers/torch. Changes committed and pushed to origin/main.
 ```
