@@ -217,8 +217,10 @@ prev_choice = st.session_state.get("sample_choice", "-- 不使用範例 --")
 if sample_choice != prev_choice:
     if sample_choice == "AI-like sample":
         st.session_state["input_text"] = (
-            "As an AI language model, I can provide guidance, structure, and coherent paragraphs "
-            "that align with the requested topic while maintaining a neutral tone throughout the response."
+            "As an AI language model, I will outline the key points, provide structured explanations, "
+            "and maintain a neutral, helpful tone. I do not possess personal opinions or emotions, "
+            "but I can generate coherent paragraphs that summarize the requested topic with clear transitions "
+            "and balanced phrasing throughout the response."
         )
     elif sample_choice == "Human-like sample":
         st.session_state["input_text"] = (

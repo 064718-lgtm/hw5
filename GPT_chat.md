@@ -114,3 +114,19 @@ UI updated with explicit Analyze button (form submit) and improved styling; AI-l
 - Swapped back to a pretrained detector (`Hello-SimpleAI/chatgpt-detector-roberta`) with transformer pipeline; heuristic remains as fallback.
 - Removed install/run command block; cleaned README; updated requirements with transformers/torch. Changes committed and pushed to origin/main.
 ```
+
+17. User:
+```
+我使用的ai-like sample
+```
+
+18. User:
+```
+進行推論時AI的機率只有29.8%請提供一個更為AI-like 的樣本，推論時至少要超過50%
+```
+
+19. Assistant:
+```
+- Updated the AI-like sample text to be more model-styled (explicitly stating it is an AI language model, neutral tone, structured explanation) to drive higher AI probability.
+- No logic changes otherwise. Changes committed and pushed to origin/main.
+```
