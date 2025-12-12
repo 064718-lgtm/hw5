@@ -1,8 +1,8 @@
-import math
 import re
 import statistics
 from typing import Dict, List, Optional, Tuple
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -103,6 +103,24 @@ def ai_score_from_transformer(text: str, detector) -> Tuple[Optional[float], Lis
 
 def tokenize(text: str) -> List[str]:
     return re.findall(r"[A-Za-z']+", text.lower())
+
+
+def token_weights(text: str) -> pd.DataFrame:
+    tokens = tokenize(text)
+    total = len(tokens)
+    data = []
+    if total == 0:
+        return pd.DataFrame(columns=["token", "count", "weight"])
+
+    counts: Dict[str, int] = {}
+    for tok in tokens:
+        counts[tok] = counts.get(tok, 0) + 1
+
+    for tok, count in counts.items():
+        data.append({"token": tok, "count": count, "weight": count / total})
+
+    df = pd.DataFrame(data).sort_values(by=["weight", "token"], ascending=[False, True])
+    return df
 
 
 def heuristic_features(text: str) -> Dict[str, float]:
@@ -241,6 +259,27 @@ if text.strip():
                 f"Avg sentence length: {feats.get('avg_sentence_len', 0.0):.2f}, "
                 f"Sentence length std: {feats.get('sentence_len_std', 0.0):.2f}"
             )
+
+    # Token weight visualization
+    st.subheader("Token 權重視覺化")
+    token_df = token_weights(text)
+    top_n = st.slider("顯示前 N 個權重較高的 token", min_value=5, max_value=min(50, len(token_df) or 5), value=min(15, len(token_df) or 5))
+    if not token_df.empty:
+        top_tokens = token_df.head(top_n)
+        chart = (
+            alt.Chart(top_tokens)
+            .mark_bar()
+            .encode(
+                x=alt.X("weight:Q", title="權重 (頻率佔比)"),
+                y=alt.Y("token:N", sort="-x", title="Token"),
+                tooltip=["token", "count", alt.Tooltip("weight:Q", format=".3f")],
+            )
+            .properties(height=400)
+        )
+        st.altair_chart(chart, use_container_width=True)
+        st.caption("權重 = token 出現次數 / 總 token 數，便於觀察高頻詞對判斷的影響。")
+    else:
+        st.info("尚無可視覺化的 token（請輸入文本）。")
 
     if result["meta"].get("detector_error"):
         st.info(result["meta"]["detector_error"])

@@ -54,3 +54,14 @@ Push done to `origin/main` (https://github.com/064718-lgtm/hw5.git).
 - Run: `pip install -r requirements.txt`; `streamlit run app.py`. First run downloads `Hello-SimpleAI/chatgpt-detector-roberta`; offline falls back to heuristics.
 - Next steps: 1) Add a small labeled set to benchmark thresholds; 2) Cache the model locally or pin a mirror for offline use.
 ```
+
+7. User:
+```
+所有token的權重都要透過視覺化的圖表進行呈現，請幫我補充README.md檔案並需要包含streamlit url的連結"https://jtmgcfkvhjatjmrwvcdblm.streamlit.app/"
+```
+
+8. Assistant:
+```
+Added token-weight visualization (frequency-based bar chart with slider) to `app.py` using Altair; updated `requirements.txt` and new `README.md` with usage plus Streamlit URL https://jtmgcfkvhjatjmrwvcdblm.streamlit.app/. 
+Pending commit/push after user confirmation.
+```
