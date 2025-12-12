@@ -87,3 +87,15 @@ UI updated with explicit Analyze button (form submit) and improved styling; AI-l
 - Token weight chart slider now supports dynamic N from 1..top tokens based on text length.
 - Updated requirements (removed transformers/torch), README, and chat log. Committed and pushed to origin/main.
 ```
+
+13. User:
+```
+也要提供一個 human-like sample
+```
+
+14. Assistant:
+``>
+- Added sample selector (None / AI-like / Human-like) without overwriting edits after selection.
+- Human-like sample text added; AI-like sample retained.
+- README updated accordingly. Changes committed and pushed to origin/main.
+```

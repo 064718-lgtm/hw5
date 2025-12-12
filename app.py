@@ -122,7 +122,11 @@ st.caption("輸入文本後按下分析，估計 AI vs Human 的比例。此版�
 
 with st.sidebar:
     st.subheader("設定")
-    sample_ai = st.checkbox("Use a short AI-like sample")
+    sample_choice = st.selectbox(
+        "範例文本",
+        ["-- 不使用範例 --", "AI-like sample", "Human-like sample"],
+        index=0,
+    )
     st.markdown(
         """
         - 安裝需求：`pip install -r requirements.txt`
@@ -139,11 +143,22 @@ default_text = (
 if "input_text" not in st.session_state:
     st.session_state["input_text"] = default_text
 
-if sample_ai:
-    st.session_state["input_text"] = (
-        "As an AI language model, I can provide guidance, structure, and coherent paragraphs "
-        "that align with the requested topic while maintaining a neutral tone throughout the response."
-    )
+prev_choice = st.session_state.get("sample_choice", "-- 不使用範例 --")
+if sample_choice != prev_choice:
+    if sample_choice == "AI-like sample":
+        st.session_state["input_text"] = (
+            "As an AI language model, I can provide guidance, structure, and coherent paragraphs "
+            "that align with the requested topic while maintaining a neutral tone throughout the response."
+        )
+    elif sample_choice == "Human-like sample":
+        st.session_state["input_text"] = (
+            "I remember walking past the old bookstore on my way home and pausing to read the hand-written sign "
+            "in the window. It wasn't polished, but the crooked letters felt sincere, and that small detail "
+            "stuck with me more than the novel I eventually bought."
+        )
+    else:
+        st.session_state["input_text"] = default_text
+st.session_state["sample_choice"] = sample_choice
 
 with st.form("detector_form", clear_on_submit=False):
     text = st.text_area(

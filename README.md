@@ -18,7 +18,7 @@ streamlit run app.py
 - 第一次使用會自動下載模型；若離線則使用啟發式模式。
 
 ## 使用說明
-1. 在文字框輸入/貼上待分析的文本（可勾選「Use a short AI-like sample」快速帶入範例）。
+1. 在文字框輸入/貼上待分析的文本；側邊可選擇範例（AI-like / Human-like）。
 2. 按「分析 Analyze」開始推論，顯示 AI% / Human% 指標與柱狀圖。
 3. 展開「特徵摘要」查看 token/句長等統計。
 4. Token 權重視覺化：滑桿選擇前 N 個高權重 token，長條圖呈現頻率佔比，便於觀察重要詞彙。
