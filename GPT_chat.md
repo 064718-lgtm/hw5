@@ -62,6 +62,5 @@ Push done to `origin/main` (https://github.com/064718-lgtm/hw5.git).
 
 8. Assistant:
 ```
-Added token-weight visualization (frequency-based bar chart with slider) to `app.py` using Altair; updated `requirements.txt` and new `README.md` with usage plus Streamlit URL https://jtmgcfkvhjatjmrwvcdblm.streamlit.app/. 
-Pending commit/push after user confirmation.
+Added token-weight visualization (frequency-based bar chart with slider) to `app.py` using Altair; updated `requirements.txt` and new `README.md` with usage plus Streamlit URL https://jtmgcfkvhjatjmrwvcdblm.streamlit.app/. Changes committed and pushed to origin/main.
 ```
