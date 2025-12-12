@@ -74,3 +74,16 @@ Added token-weight visualization (frequency-based bar chart with slider) to `app
 ```
 UI updated with explicit Analyze button (form submit) and improved styling; AI-like sample set via checkbox. Added Altair chart styling tweaks. Heuristic scoring tuned toward balanced vocabulary diversity and smoother sentences to raise AI-likeness for AI-like text when transformer is unavailable. README updated. Changes committed and pushed.
 ```
+
+11. User:
+```
+不要用transformer detector，也不要出現這個"使用啟發式特徵判斷（未載入模型)"，在Token 權重視覺化需要能夠動態調整N來顯示前 N 個權重較高的 token
+```
+
+12. Assistant:
+```
+- Removed transformer path entirely; detector now purely heuristic with tuned scoring.
+- Cleaned UI text (no transformer/fallback wording), kept Analyze button workflow.
+- Token weight chart slider now supports dynamic N from 1..top tokens based on text length.
+- Updated requirements (removed transformers/torch), README, and chat log. Committed and pushed to origin/main.
+```

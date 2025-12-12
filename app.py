@@ -1,12 +1,12 @@
 import re
 import statistics
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import altair as alt
 import pandas as pd
 import streamlit as st
 
-# Basic stopword list to support the heuristic fallback.
+# Basic stopword list to support the heuristic.
 STOPWORDS = {
     "a",
     "an",
@@ -38,67 +38,8 @@ STOPWORDS = {
     "with",
 }
 
-AI_LABEL_TOKENS = ("ai", "gpt", "fake", "machine", "generated", "synthetic", "bot")
-HUMAN_LABEL_TOKENS = ("human", "real", "organic", "authentic")
-
-
 def clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
-
-
-@st.cache_resource(show_spinner=False)
-def load_detector():
-    """
-    Load a lightweight transformer-based detector if transformers are available.
-    Falls back to heuristics when the model cannot be loaded (e.g., offline).
-    """
-    try:
-        from transformers import pipeline
-    except Exception as exc:  # pragma: no cover - dependency check
-        return None, f"transformers not available: {exc}"
-
-    try:
-        classifier = pipeline(
-            task="text-classification",
-            model="Hello-SimpleAI/chatgpt-detector-roberta",
-            device=-1,
-        )
-        return classifier, None
-    except Exception as exc:  # pragma: no cover - model fetch may fail offline
-        return None, f"model could not be loaded: {exc}"
-
-
-def ai_score_from_transformer(text: str, detector) -> Tuple[Optional[float], List[Dict]]:
-    outputs = detector(
-        text,
-        truncation=True,
-        max_length=512,
-        return_all_scores=True,
-    )
-    if not outputs:
-        return None, []
-
-    scores = outputs[0]
-    ai_score = None
-    human_score = None
-
-    for row in scores:
-        label = row.get("label", "").lower()
-        if any(token in label for token in AI_LABEL_TOKENS):
-            ai_score = row["score"]
-        if any(token in label for token in HUMAN_LABEL_TOKENS):
-            human_score = row["score"]
-
-    if ai_score is None and human_score is not None:
-        ai_score = 1.0 - human_score
-
-    if ai_score is None and len(scores) == 2:
-        ai_score = scores[1]["score"]
-
-    if ai_score is None:
-        ai_score = scores[0]["score"]
-
-    return clamp(ai_score), scores
 
 
 def tokenize(text: str) -> List[str]:
@@ -165,40 +106,22 @@ def heuristic_score(text: str) -> Tuple[float, Dict[str, float]]:
     return clamp(weighted_score, 0.0, 1.0), features
 
 
-def analyze(text: str, prefer_model: bool = True) -> Dict:
-    detector, load_error = load_detector()
-    meta: Dict[str, object] = {"detector_loaded": detector is not None, "detector_error": load_error}
-
-    if prefer_model and detector is not None:
-        try:
-            ai_prob, raw_scores = ai_score_from_transformer(text, detector)
-            meta["raw_scores"] = raw_scores
-            return {
-                "ai_prob": ai_prob,
-                "human_prob": 1.0 - ai_prob,
-                "method": "transformer",
-                "meta": meta,
-            }
-        except Exception as exc:  # pragma: no cover - runtime safety
-            meta["detector_error"] = f"inference failed, fallback to heuristics: {exc}"
-
+def analyze(text: str) -> Dict:
     ai_prob, features = heuristic_score(text)
-    meta["features"] = features
     return {
         "ai_prob": ai_prob,
         "human_prob": 1.0 - ai_prob,
         "method": "heuristic",
-        "meta": meta,
+        "meta": {"features": features},
     }
 
 
 st.set_page_config(page_title="AI / Human Detector", page_icon="🛰️", layout="wide")
 st.title("AI / Human 文章偵測器")
-st.caption("輸入文本後按下分析，估計 AI vs Human 的比例。預設使用 transformer 模型，若無法下載則改用啟發式特徵。")
+st.caption("輸入文本後按下分析，估計 AI vs Human 的比例。此版本採用啟發式特徵。")
 
 with st.sidebar:
     st.subheader("設定")
-    prefer_model = st.checkbox("Prefer transformer detector", value=True)
     sample_ai = st.checkbox("Use a short AI-like sample")
     st.markdown(
         """
@@ -232,7 +155,7 @@ with st.form("detector_form", clear_on_submit=False):
 
 if submitted and text.strip():
     with st.spinner("Analyzing..."):
-        result = analyze(text.strip(), prefer_model=prefer_model)
+        result = analyze(text.strip())
 
     ai_pct = result["ai_prob"] * 100
     human_pct = result["human_prob"] * 100
@@ -244,36 +167,30 @@ if submitted and text.strip():
         pd.DataFrame({"probability": [ai_pct, human_pct]}, index=["AI", "Human"])
     )
 
-    if result["method"] == "transformer":
-        st.success("使用 Transformer 模型判斷 (Hello-SimpleAI/chatgpt-detector-roberta)")
-        with st.expander("模型分數", expanded=False):
-            raw_scores = result["meta"].get("raw_scores", [])
-            for row in raw_scores:
-                st.write(f"{row['label']}: {row['score']:.3f}")
-    else:
-        st.warning("使用啟發式特徵判斷（未載入模型）")
-        with st.expander("特徵摘要", expanded=False):
-            feats = result["meta"].get("features", {})
-            st.write(
-                f"Tokens: {feats.get('tokens', 0)}, "
-                f"Unique ratio: {feats.get('unique_ratio', 0.0):.3f}, "
-                f"Stopword ratio: {feats.get('stop_ratio', 0.0):.3f}"
-            )
-            st.write(
-                f"Avg sentence length: {feats.get('avg_sentence_len', 0.0):.2f}, "
-                f"Sentence length std: {feats.get('sentence_len_std', 0.0):.2f}"
-            )
+    with st.expander("特徵摘要", expanded=False):
+        feats = result["meta"].get("features", {})
+        st.write(
+            f"Tokens: {feats.get('tokens', 0)}, "
+            f"Unique ratio: {feats.get('unique_ratio', 0.0):.3f}, "
+            f"Stopword ratio: {feats.get('stop_ratio', 0.0):.3f}"
+        )
+        st.write(
+            f"Avg sentence length: {feats.get('avg_sentence_len', 0.0):.2f}, "
+            f"Sentence length std: {feats.get('sentence_len_std', 0.0):.2f}"
+        )
 
     # Token weight visualization
     st.subheader("Token 權重視覺化")
     token_df = token_weights(text)
-    top_n = st.slider(
-        "顯示前 N 個權重較高的 token",
-        min_value=5,
-        max_value=min(50, len(token_df) or 5),
-        value=min(15, len(token_df) or 5),
-    )
     if not token_df.empty:
+        max_tokens = max(1, min(50, len(token_df)))
+        default_n = min(15, max_tokens)
+        top_n = st.slider(
+            "顯示前 N 個權重較高的 token",
+            min_value=1,
+            max_value=max_tokens,
+            value=default_n,
+        )
         top_tokens = token_df.head(top_n)
         chart = (
             alt.Chart(top_tokens)
